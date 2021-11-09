@@ -1,0 +1,10 @@
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\bin\Debug\EmpowerUserTool.exe.config
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\bin\Debug\EmpowerUserTool.exe
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\bin\Debug\EmpowerUserTool.pdb
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\obj\Debug\EmpowerUserTool.csprojAssemblyReference.cache
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\obj\Debug\EmpowerUserTool.Form1.resources
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\obj\Debug\EmpowerUserTool.Properties.Resources.resources
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\obj\Debug\EmpowerUserTool.csproj.GenerateResource.cache
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\obj\Debug\EmpowerUserTool.csproj.CoreCompileInputs.cache
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\obj\Debug\EmpowerUserTool.exe
+C:\Users\tsemovic\Desktop\GITHUB\EmpowerUserTool\EmpowerUserTool\EmpowerUserTool\obj\Debug\EmpowerUserTool.pdb

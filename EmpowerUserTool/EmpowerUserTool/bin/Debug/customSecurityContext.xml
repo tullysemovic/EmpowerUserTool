@@ -1,0 +1,641 @@
+<!-- 
+	SUMMARY: This file is used to configure Spring security.
+
+	NOTE: The version of this file to be used is defined by "empower.home" which is defined in /conf/Catalina/localhost/hes.xml
+ -->
+ <beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+                    http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+                    http://www.springframework.org/schema/security
+                    http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+
+    <http use-expressions="true" auto-config="true" disable-url-rewriting="true" entry-point-ref="delegatingAuthenticationEntryPoint">
+        <!-- csrf -->
+        <csrf />
+        <!-- headers -->
+        <headers>
+        	<content-type-options disabled="true" />
+        	<cache-control disabled="true" />
+        </headers>
+        <!-- Access denied handler -->
+        <access-denied-handler ref="customAccessDeniedHandler"/>
+        <!-- Admin Console and Login -->
+        <intercept-url pattern="/login" access="permitAll" />
+        <intercept-url pattern="/console/css/*.css" access="permitAll" />
+        <intercept-url pattern="/console/img/*.png" access="permitAll" />
+        <intercept-url pattern="/console/favicon.ico" access="permitAll" />
+        <intercept-url pattern="/console/login.jsp" access="permitAll" />
+        <intercept-url pattern="/console/logout.jsp" access="isAuthenticated()" />
+        <intercept-url pattern="/console/logoutOk.jsp" access="isAuthenticated()" />
+        <intercept-url pattern="/console/**" access="isAuthenticated() and hasAuthority('ADMINISTRATOR')" />
+        <!-- Tokens -->
+        <intercept-url pattern="/resource/GetToken" access="hasAnyAuthority('EDITOR','INTEGRATOR','ADMINISTRATOR')" />
+        <!-- Document management -->
+        <intercept-url pattern="/resource/documents/import" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="POST" /> <!-- Import -->
+        <intercept-url pattern="/resource/documents/*/export" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="GET" /> <!-- Export -->
+        <intercept-url pattern="/resource/documents/*/export" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="POST" /> <!-- Export -->
+        <intercept-url pattern="/resource/documents/*/restore" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="POST" /> <!-- Restore -->
+        <intercept-url pattern="/resource/documents/restore" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="POST" /> <!-- Batch Restore -->
+        <intercept-url pattern="/resource/documents/**/meta" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="POST" /> <!-- Update doc metadata -->
+		<intercept-url pattern="/resource/documents/**/meta" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR','EDITOR')" method="GET" /> <!-- Get doc metadata -->
+        <intercept-url pattern="/resource/documents/delete" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="POST" /> <!-- Batch delete -->
+        <intercept-url pattern="/resource/documents/*" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="DELETE" /> <!-- Delete -->
+        <intercept-url pattern="/resource/documents" access="hasAuthority('INTEGRATOR')" method="POST" /> <!-- Import DEPRECATED -->
+        <intercept-url pattern="/resource/documents" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="GET" /> <!--Search docs -->
+        <!-- Document edition methods -->
+        <intercept-url pattern="/resource/docedit/**" access="hasAnyAuthority('EDITOR','ADMINISTRATOR')" />
+        <intercept-url pattern="/dictionaries/**" access="hasAnyAuthority('EDITOR','ADMINISTRATOR')" />
+        <!-- Editor management & resources -->
+        <intercept-url pattern="/resource/editor/*/reactivate" access="hasAuthority('ADMINISTRATOR')" method="POST" />
+        <intercept-url pattern="/resource/editor" access="hasAuthority('ADMINISTRATOR')" />
+        <intercept-url pattern="/resource/editor/**" access="hasAuthority('EDITOR')" method="GET"/>
+        <intercept-url pattern="/resource/editor/**" access="hasAuthority('ADMINISTRATOR')" method="DELETE" />
+        <!-- Role management -->
+        <intercept-url pattern="/resource/roles" access="hasAuthority('ADMINISTRATOR')" />
+        <intercept-url pattern="/resource/roles/**" access="hasAuthority('ADMINISTRATOR')" />
+        <!-- Access Groups management -->
+        <intercept-url pattern="/resource/accessGroups" access="hasAuthority('ADMINISTRATOR')" />
+        <intercept-url pattern="/resource/accessGroups/**" access="hasAuthority('ADMINISTRATOR')" />        
+        <!-- Application management -->
+        <intercept-url pattern="/resource/applications/update" access="hasAuthority('ADMINISTRATOR')" />
+        <intercept-url pattern="/resource/applications" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="GET" /> <!-- Search/List Apps -->
+        <intercept-url pattern="/resource/applications" access="hasAuthority('ADMINISTRATOR')" />
+        <intercept-url pattern="/resource/applications/**" access="hasAuthority('ADMINISTRATOR')" />
+        <!-- Report management -->
+        <intercept-url pattern="/resource/reports/**" access="hasAuthority('ADMINISTRATOR')" method="GET" />
+        <!-- Scheduler management -->
+        <intercept-url pattern="/resource/scheduler/**" access="hasAuthority('ADMINISTRATOR')" method="POST" />
+        <!-- User management -->
+        <intercept-url pattern="/resource/users/**" access="hasAuthority('ADMINISTRATOR')" method="GET" />        
+        <!-- Dictionary management -->
+        <intercept-url pattern="/resource/dictionaries" access="hasAnyAuthority('ADMINISTRATOR','EDITOR')" method="GET" /> <!-- Get mappings -->
+        <intercept-url pattern="/resource/dictionaries" access="hasAuthority('ADMINISTRATOR')" method="POST" /> <!-- Upload and Map -->
+        <intercept-url pattern="/resource/dictionaries/**" access="hasAuthority('EDITOR')" method="GET" /> <!-- Get dictionary file -->
+        <!-- License management -->
+        <intercept-url pattern="/resource/license" access="hasAuthority('ADMINISTRATOR')" method="GET" /> <!-- Get license info -->
+        <intercept-url pattern="/resource/license/namedSeats" access="hasAuthority('ADMINISTRATOR')" method="GET" /> <!-- Search named Seats -->
+        <!-- Configuration management -->
+        <intercept-url pattern="/resource/config/errorCodes" access="hasAnyAuthority('INTEGRATOR','ADMINISTRATOR')" method="GET" />
+        <intercept-url pattern="/resource/config" access="hasAnyAuthority('ADMINISTRATOR','EDITOR')" method="GET" />
+        <intercept-url pattern="/resource/config/**" access="hasAnyAuthority('ADMINISTRATOR','EDITOR')" method="GET" />
+        <intercept-url pattern="/resource/config" access="hasAuthority('ADMINISTRATOR')" method="POST" />
+        <intercept-url pattern="/resource/config/**" access="hasAuthority('ADMINISTRATOR')" method="POST" />
+        <intercept-url pattern="/resource/healthcheck" access="hasAnyAuthority('EDITOR','INTEGRATOR','ADMINISTRATOR')" method="GET" />
+        <!-- Miscellaneous -->
+        <intercept-url pattern="/error/**" access="permitAll" />
+        <intercept-url pattern="/**" access="denyAll" />
+        <http-basic />
+        <!-- <form-login
+        	default-target-url="/console" login-page="/console/login.jsp" login-processing-url="/login" authentication-success-handler-ref="customAuthenticationSuccessHandler" authentication-failure-handler-ref="customAuthenticationFailureHandler" username-parameter="username" password-parameter="password" /> -->
+        <logout logout-url="/console/logout.jsp" />
+    </http>
+	
+    <beans:bean id="customAuthenticationSuccessHandler" class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
+        <beans:property name="useReferer" value="true" />
+    </beans:bean>
+
+    <beans:bean id="customAuthenticationFailureHandler" class="com.exstream.hes.webapp.CustomAuthenticationFailureHandler">
+        <beans:property name="errorPage401" value="/console/login.jsp?login_error"/>
+    </beans:bean>
+
+    <beans:bean id="customAccessDeniedHandler" class="com.exstream.hes.webapp.AccessDeniedExceptionHandler">
+        <beans:property name="errorPage403" value="/console/login.jsp?access_denied"/>
+        <beans:property name="errorPageToken" value="/console/login.jsp?stale_token"/>
+    </beans:bean>
+
+    <!-- <beans:bean id="delegatingAuthenticationEntryPoint" class="org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint">
+        <beans:constructor-arg>
+            <beans:map>
+                <beans:entry key="hasHeader('User-Agent','Mozilla')" value-ref="formAuthenticationEntryPoint" />
+                <beans:entry key="hasHeader('User-Agent','MSIE')" value-ref="formAuthenticationEntryPoint" />
+            </beans:map>
+        </beans:constructor-arg>
+        <beans:property name="defaultEntryPoint" ref="basicAuthenticationEntryPoint"/>
+    </beans:bean> -->
+	
+	<beans:bean id="delegatingAuthenticationEntryPoint" class="org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint">
+		<beans:constructor-arg>
+			<beans:map>
+				<beans:entry key="hasHeader('User-Agent','Mozilla')" value-ref="basicAuthenticationEntryPoint" />
+				<beans:entry key="hasHeader('User-Agent','MSIE')" value-ref="basicAuthenticationEntryPoint" />
+			</beans:map>
+		</beans:constructor-arg>
+		<beans:property name="defaultEntryPoint" ref="basicAuthenticationEntryPoint"/>
+	</beans:bean>
+
+
+    <beans:bean id="basicAuthenticationEntryPoint" class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint">
+        <beans:property name="realmName" value="Empower"/>
+    </beans:bean>
+
+    <beans:bean id="formAuthenticationEntryPoint" class="com.exstream.hes.webapp.CustomLoginUrlAuthenticationEntryPoint">
+        <beans:constructor-arg type="java.lang.String" value="/console/login.jsp"/>
+    </beans:bean>
+	
+    <!-- LDAP Server for testing purposes -->
+    <!--
+    <ldap-server url="ldap://localhost:33389/dc=springframework,dc=org" />
+    <authentication-manager>
+        <ldap-authentication-provider
+                group-search-filter="member={0}"
+                group-search-base="ou=groups"
+                user-search-base="ou=people"
+                user-search-filter="uid={0}"
+                role-prefix="none"
+        />
+        <authentication-provider>
+            <user-service>
+                <user name="admin2" password="aaa" authorities="ADMINISTRATOR" />
+                <user name="integrator2" password="iii" authorities="INTEGRATOR" />
+                <user name="editor2" password="eee" authorities="EDITOR" />
+            </user-service>
+        </authentication-provider>
+    </authentication-manager>
+    -->
+
+    <!--  In Memory User Store -->
+    <authentication-manager>
+        <authentication-provider>
+            <user-service>
+                <user name="admin" password="xxx" authorities="ADMINISTRATOR, INTEGRATOR, EDITOR" />
+                <user name="administrator" password="aaa" authorities="ADMINISTRATOR" />
+                <user name="integrator" password="iii" authorities="INTEGRATOR" />
+                <user name="user" password="uuu" authorities="EDITOR" />
+				
+				<!-- 10/08/2018 TB -->
+<user name="M010891" password="WestpaC1"  authorities="EDITOR" />
+<user name="M039981" password="WestpaC1"  authorities="EDITOR" />
+<user name="M039978" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 19-10-2021 -->
+<!-- <user name="M043865" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="M023367" password="WestpaC1"  authorities="EDITOR" />
+<user name="F030917" password="WestpaC1"  authorities="EDITOR" />
+<user name="M019347" password="WestpaC1"  authorities="EDITOR" />
+
+
+<!-- removed by Praveen 12-10-2021 -->
+<!-- <user name="F020032" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="F045781" password="WestpaC1"  authorities="EDITOR" />
+<user name="M028046" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 12-10-2021 -->
+<!-- <user name="M724327" password="WestpaC1"  authorities="EDITOR" /> -->
+<!-- removed by Praveen 19-10-2021 -->
+<!-- <user name="F006085" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="F300731" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 12-10-2021 -->
+<!-- <user name="M021615" password="WestpaC1"  authorities="EDITOR" /> -->
+
+<user name="F055816" password="WestpaC1"  authorities="EDITOR" />
+<user name="M025836" password="WestpaC1"  authorities="EDITOR" />
+<user name="F058820" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 12-10-2021 -->
+<!-- <user name="M011905" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="F213918" password="WestpaC1"  authorities="EDITOR" />
+<user name="M036085" password="WestpaC1"  authorities="EDITOR" />
+<user name="F757655" password="WestpaC1"  authorities="EDITOR" />
+<user name="M036082" password="WestpaC1"  authorities="EDITOR" />
+<user name="M013926" password="WestpaC1"  authorities="EDITOR" />
+
+<user name="M027576" password="WestpaC1"  authorities="EDITOR" />
+<user name="M026920" password="WestpaC1"  authorities="EDITOR" />
+<user name="M027632" password="WestpaC1"  authorities="EDITOR" />
+<user name="F013029" password="WestpaC1"  authorities="EDITOR" />
+<user name="M028973" password="WestpaC1"  authorities="EDITOR" />
+<user name="M039992" password="WestpaC1"  authorities="EDITOR" />
+<user name="M038471" password="WestpaC1"  authorities="EDITOR" />
+<user name="F045166" password="WestpaC1"  authorities="EDITOR" />
+<user name="F064157" password="WestpaC1"  authorities="EDITOR" />
+
+<user name="F829846" password="WestpaC1"  authorities="EDITOR" />
+<user name="M046300" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 28-09-2021 -->
+<!-- <user name="F053064" password="WestpaC1"  authorities="EDITOR" /> -->
+
+<user name="M009849" password="WestpaC1"  authorities="EDITOR" />
+<user name="M449953" password="WestpaC1"  authorities="EDITOR" />
+<user name="M025837" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 12-10-2021 -->
+<!-- <user name="F666472" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="M004268" password="WestpaC1"  authorities="EDITOR" />
+<user name="F042426" password="WestpaC1"  authorities="EDITOR" />
+
+
+<user name="F040415" password="WestpaC1"  authorities="EDITOR" />
+<user name="F223393" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 14-09-2021 -->
+<!-- <user name="M585131" password="WestpaC1"  authorities="EDITOR" /> -->
+<!-- removed by Praveen 19-10-2021 -->
+<!-- <user name="M043862" password="WestpaC1"  authorities="EDITOR" /> -->
+<!-- removed by Praveen 12-10-2021 -->
+<!-- <user name="M036446" password="WestpaC1"  authorities="EDITOR" /> -->
+
+<!-- removed by Chris Clarke 17-04-2020 -->
+<!-- <user name="L105793" password="WestpaC1"  authorities="EDITOR" /> -->
+
+<!-- removed by Praveen 19-10-2021 -->
+<!-- <user name="M009923" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="E69679" password="WestpaC1"  authorities="EDITOR" />
+<user name="E28282" password="WestpaC1"  authorities="EDITOR" />
+<user name="E69962" password="WestpaC1"  authorities="EDITOR" />
+<user name="E39044" password="WestpaC1"  authorities="EDITOR" />
+<user name="E69724" password="WestpaC1"  authorities="EDITOR" />
+<user name="E63198" password="WestpaC1"  authorities="EDITOR" />
+
+<user name="E69723" password="WestpaC1"  authorities="EDITOR" />
+<user name="E69725" password="WestpaC1"  authorities="EDITOR" />
+<user name="E56722" password="WestpaC1"  authorities="EDITOR" />
+<user name="E19136" password="WestpaC1"  authorities="EDITOR" />
+
+<user name="E63303" password="WestpaC1"  authorities="EDITOR" />
+<user name="E00708" password="WestpaC1"  authorities="EDITOR" />
+<user name="E69766" password="WestpaC1"  authorities="EDITOR" />
+<user name="E63996" password="WestpaC1"  authorities="EDITOR" />
+<user name="E26663" password="WestpaC1"  authorities="EDITOR" />
+<user name="E41935" password="WestpaC1"  authorities="EDITOR" />
+<user name="E73182" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 19/10/2021 -->
+<!-- <user name="E48147" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="E33545" password="WestpaC1"  authorities="EDITOR" />
+
+
+<!-- removed by Praveen 19/10/2021 -->
+<!-- <user name="E81804" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="E63501" password="WestpaC1"  authorities="EDITOR" />
+<user name="E26661" password="WestpaC1"  authorities="EDITOR" />
+
+<user name="E63197" password="WestpaC1"  authorities="EDITOR" />
+
+
+<!-- 30/08/2018 -->
+<user name="E26660" password="WestpaC1" authorities="EDITOR" />
+<user name="E27436" password="WestpaC1" authorities="EDITOR" />
+
+<!-- 21/09/2018 -->
+<user name="F055353" password="WestpaC1" authorities="EDITOR" />
+<user name="F007658" password="WestpaC1" authorities="EDITOR" />
+
+<!-- 02/11/2018 -->
+<!-- removed by Praveen 28/09/2021 -->
+<!-- <user name="C85527" password="WestpaC1"  authorities="EDITOR" /> -->
+<!-- <user name="F065303" password="WestpaC1"  authorities="EDITOR" /> -->
+<!-- removed by Praveen 14/09/2021 -->
+<!-- <user name="C85985" password="WestpaC1"  authorities="EDITOR" /> -->
+
+<!-- removed by Praveen 28/09/2021 -->
+<!-- <user name="M047726" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="F040424" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 12/10/2021 -->
+<!-- <user name="F036390" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="F015231" password="WestpaC1"  authorities="EDITOR" />
+<user name="M008188" password="WestpaC1"  authorities="EDITOR" />
+
+<!-- removed by Praveen 14/09/2021 -->
+<!-- <user name="L118970" password="WestpaC1"  authorities="EDITOR" /> -->
+<!-- removed by Praveen 19/10/2021 -->
+<!-- <user name="F964400" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="F027167" password="WestpaC1"  authorities="EDITOR" />
+
+
+<!-- 15/02/2019 -->
+
+<!-- removed by Chris Clarke 17-04-2020 -->
+<!-- <user name="F105163" password="WestpaC1"  authorities="EDITOR" /> -->
+
+<user name="E05163" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 19/10/2021 -->
+<!-- <user name="F061426" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="F017208" password="WestpaC1"  authorities="EDITOR" />
+<user name="F024646" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 19/10/2021 -->
+<!-- <user name="M675164" password="WestpaC1"  authorities="EDITOR" /> -->
+<!-- <user name="M010290" password="WestpaC1"  authorities="EDITOR" /> -->
+
+<user name="M047945" password="WestpaC1"  authorities="EDITOR" />
+<user name="M047943" password="WestpaC1"  authorities="EDITOR" />
+
+<user name="F011314" password="WestpaC1"  authorities="EDITOR" />
+
+
+<user name="WBCeDocsRun1" password="WestpaC1"  authorities="EDITOR" />
+
+<!-- TB - 04/06/2019 - ADDED -->
+<!-- removed by Praveen 12/10/2021 -->
+<!-- <user name="F848757" password="WestpaC1"  authorities="EDITOR" /> -->
+<!-- <user name="F050817" password="WestpaC1"  authorities="EDITOR" /> -->
+<!-- removed by Praveen 19/10/2021 -->
+<!-- <user name="M002780" password="WestpaC1"  authorities="EDITOR" /> -->
+<user name="C85369" password="WestpaC1"  authorities="EDITOR" />
+<user name="M034994" password="WestpaC1"  authorities="EDITOR" />
+
+<!-- removed by Praveen 26/10/2021 -->
+<!-- <user name="F012810" password="WestpaC1"  authorities="EDITOR" /> -->
+
+<user name="F021880" password="WestpaC1"  authorities="EDITOR" />
+<user name="F028864" password="WestpaC1"  authorities="EDITOR" />
+<user name="F010787" password="WestpaC1"  authorities="EDITOR" />
+<user name="F021120" password="WestpaC1"  authorities="EDITOR" />
+<user name="F012538" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 12/10/2021 -->
+<!-- <user name="L126904" password="WestpaC1"  authorities="EDITOR" /> -->
+
+<user name="C88326" password="WestpaC1"  authorities="EDITOR" />
+<user name="C88275" password="WestpaC1"  authorities="EDITOR" />
+<user name="F952926" password="WestpaC1"  authorities="EDITOR" />
+<user name="M028993" password="WestpaC1"  authorities="EDITOR" />
+<user name="F033449" password="WestpaC1"  authorities="EDITOR" />
+
+<!-- TB - 04/06/2019 - DISABLED -->
+<!--
+<user name="M013594" password="WestpaC1"  authorities="EDITOR" />
+<user name="M036105" password="WestpaC1"  authorities="EDITOR" />
+<user name="F045385" password="WestpaC1"  authorities="EDITOR" />
+<user name="L088218" password="WestpaC1"  authorities="EDITOR" />
+<user name="E84363" password="WestpaC1"  authorities="EDITOR" />
+<user name="C83151" password="WestpaC1"  authorities="EDITOR" />
+-->
+
+<!-- TB - 28/06/2019  -->
+<user name="M027676" password="WestpaC1"  authorities="EDITOR" />
+<!-- removed by Praveen 12/10/2021 -->
+<!-- <user name="F062974" password="WestpaC1"  authorities="EDITOR" /> -->
+
+
+
+
+<!-- TB - 06/09/2019  -->
+<!-- added -->
+<user name="F165432" password="WestpaC1"  authorities="EDITOR" />
+
+<!-- removed and replaced with the following one-->
+<!-- <user name="C85896" password="WestpaC1"  authorities="EDITOR" /> --> 
+<!-- removed --> 
+<!-- <user name="L118700" password="WestpaC1"  authorities="EDITOR" /> --> 
+
+<!-- removed -->
+<!--  <user name="L102733" password="WestpaC1"  authorities="EDITOR" /> --> 
+
+ 
+ 
+ <!-- TB - 23/01/2020  -->
+ <!-- added -->
+ 
+<!-- removed by Praveen 19/10/2021 -->
+  <!-- <user name="M039947" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- removed by Praveen 14/09/2021 -->
+ <!-- <user name="E65432" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <user name="M050570" password="WestpaC1"  authorities="EDITOR" />
+ <user name="F053683" password="WestpaC1"  authorities="EDITOR" />
+ <user name="M050525" password="WestpaC1"  authorities="EDITOR" />
+ <user name="F067929" password="WestpaC1"  authorities="EDITOR" />
+ <!-- removed by Praveen 12/10/2021 -->
+ <!-- <user name="M046399" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="M027285" password="WestpaC1"  authorities="EDITOR" />
+ <!-- removed by Praveen 14/09/2021 -->
+ <!-- <user name="M016753" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- removed by Praveen 12/10/2021 -->
+ <!-- <user name="M013478" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="L106196" password="WestpaC1"  authorities="EDITOR" />
+ <!-- removed by Praveen 14/09/2021 -->
+ <!-- <user name="F114967" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="M119685" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="M041689" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="F068235" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <!-- JCRet - 11/05/2020  -->
+ <!-- added -->
+ <user name="L140180" password="WestpaC1"  authorities="EDITOR" />
+ <!-- removed by Praveen 28/09/2021 -->
+ <!-- <user name="L139891" password="WestpaC1"  authorities="EDITOR" /> -->
+  
+ <!-- MBabac - 26/05/2020  -->
+ <!-- added -->
+ <!-- removed by Praveen 28/09/2021 -->
+ <!-- <user name="L142687" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L142692" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="L142679" password="WestpaC1"  authorities="EDITOR" />
+ <!-- <user name="L142708" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="L142689" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- BLisbos - 07/07/2020  -->
+ <!-- added -->
+ <!-- removed by Praveen 28/09/2021 -->
+ <!-- <user name="L140912" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="L139893" password="WestpaC1"  authorities="EDITOR" />
+ <!-- <user name="L139844" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L142680" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L142688" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L139847" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <!-- BLisbos - 23/07/2020  -->
+ <!-- reinstated -->
+ <user name="F055818" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- BLisbos - 28/07/2020  -->
+ <!-- added -->
+ <!-- removed by Praveen 28/09/2021 -->
+ <!-- <user name="L144811" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="M054964" password="WestpaC1"  authorities="EDITOR" />
+ <!-- <user name="L144606" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- removed by Praveen 12/10/2021 -->
+ <!-- <user name="L144611" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="L144612" password="WestpaC1"  authorities="EDITOR" />
+ <!-- <user name="L144610" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L144600" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L144604" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="F045385" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- BLisbos - 27/08/2020  -->
+ <!-- added -->
+ <user name="M052514" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- BLisbos - 08/09/2020  -->
+ <!-- added -->
+ <user name="L144563" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L147529" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L147534" password="WestpaC1"  authorities="EDITOR" />
+ <!-- removed by Praveen 14/09/2021 -->
+ <!-- <user name="L147525" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <user name="L147513" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- BLisbos - 12/01/2021  -->
+ 
+ <!-- Praveen - 14/09/2021  -->
+ <!-- removed -->
+ <!-- <user name="L151759" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- removed by praveen 28/09/2021-->
+ <!-- <user name="L151757" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L151762" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <!-- Praveen - 07/09/2021  --> 
+ <!-- removed and replaced with the following one-->
+ <!-- <user name="L151749" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <user name="F074026" password="WestpaC1"  authorities="EDITOR" />
+ <!-- Praveen - 07/09/2021  --> 
+ <!-- removed by praveen 28/09/2021-->
+ <!-- <user name="L151751" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L151750" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <!-- BLisbos - 16/02/2021  --> 
+ <user name="F071440" password="WestpaC1"  authorities="EDITOR" />
+
+ <!-- BLisbos - 02/03/2021  -->
+ <!-- removed by praveen 28/09/2021-->
+ <!-- <user name="M054341" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="M054340" password="WestpaC1"  authorities="EDITOR" />
+ <user name="M054338" password="WestpaC1"  authorities="EDITOR" />
+ <user name="M054347" password="WestpaC1"  authorities="EDITOR" />
+ <user name="F071471" password="WestpaC1"  authorities="EDITOR" />
+ <!-- <user name="M054309" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="M054348" password="WestpaC1"  authorities="EDITOR" />
+
+ <!-- BLisbos - 23/03/2021  --> 
+ <!-- removed by praveen 28/09/2021-->
+ <!-- <user name="M054424" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="F071417" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- BLisbos - 04/05/2021  --> 
+ <user name="L157667" password="WestpaC1"  authorities="EDITOR" />
+ <!-- removed by praveen 28/09/2021-->
+ <!-- <user name="M055090" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="F072311" password="WestpaC1"  authorities="EDITOR" />
+ <user name="F072313" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L157229" password="WestpaC1"  authorities="EDITOR" />
+ <user name="M019362" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L156361" password="WestpaC1"  authorities="EDITOR" />
+ <!-- removed by praveen 28/09/2021-->
+ <!-- <user name="L157444" password="WestpaC1"  authorities="EDITOR" /> -->
+ <user name="L157273" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L157442" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L157228" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- BLisbos - 11/05/2021  --> 
+ <user name="L158071" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- BLisbos - 18/05/2021  --> 
+ <user name="M055243" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- BLisbos - 22/06/2021  --> 
+ <user name="L158870" password="WestpaC1"  authorities="EDITOR" />
+ 
+  <!-- BLisbos - 22/06/2021  --> 
+ <user name="M055307" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- Praveen - 24/08/2021  --> 
+ <user name="L164259" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L164256" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L164264" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L163722" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L163990" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L163992" password="WestpaC1"  authorities="EDITOR" />
+
+ <!-- Praveen - 31/08/2021  --> 
+ <user name="M056538" password="WestpaC1"  authorities="EDITOR" />
+ <user name="F074141" password="WestpaC1"  authorities="EDITOR" />
+ <user name="M056585" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- Praveen - 14/09/2021  --> 
+ <user name="M056185" password="WestpaC1"  authorities="EDITOR" />
+ <user name="F072844" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L154447" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- Praveen - 21/09/2021  --> 
+ <user name="M056967" password="WestpaC1"  authorities="EDITOR" />
+ <!-- Praveen - 28/09/2021  --> 
+ <user name="L165957" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L165779" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L165656" password="WestpaC1"  authorities="EDITOR" />
+ <user name="F043031" password="WestpaC1"  authorities="EDITOR" />
+ <user name="F074224" password="WestpaC1"  authorities="EDITOR" />
+ <user name="M056848" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L165929" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L165958" password="WestpaC1"  authorities="EDITOR" />
+ 
+ <!-- Praveen - 26/10/2021  added --> 
+ <user name="L164223" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L164620" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L164550" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L163993" password="WestpaC1"  authorities="EDITOR" />
+ 
+ 
+ <!-- added -->
+ 
+ <!-- removed -->
+<!-- 
+ <user name="L093179" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L110690" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L102731" password="WestpaC1"  authorities="EDITOR" />
+ <user name="L102850" password="WestpaC1"  authorities="EDITOR" />
+ -->
+ 
+ <!-- BLisbos - 30/06/2020 -->
+ <!-- Commented out users -->
+ <!-- <user name="C77915" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="C81069" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="C84090" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="C87259" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="C88274" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="C88327" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="E87302" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L094539" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L102849" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L108492" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L122880" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L126887" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L126888" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L126900" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L126905" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L126970" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L137666" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="M047597" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="M047946" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="M318566" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <!-- BLisbos - 02/02/2021 -->
+ <!-- <user name="L144991" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L144564" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="LI45155" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="M041316" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L136712" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L137667" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <!-- BLisbos - 16/02/2021 -->
+ <!-- <user name="L139843" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <!-- BLisbos - 02/03/2021 -->
+ <!-- <user name="L142685" password="WestpaC1"  authorities="EDITOR" /> --> 
+ <!-- <user name="L139890" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L139991" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L140185" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L139842" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L142684" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L142678" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <!-- BLisbos - 23/03/2021 -->
+ <!-- <user name="L140058" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!-- <user name="L139851" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+ <!-- Removed 21/07/2020 --> 
+ <!--<user name="F043502" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="L137664" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="M037213" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="F023454" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="M002051" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="L137662" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="F055778" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="F167135" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="M030819" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="F058705" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="M025842" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="L137661" password="WestpaC1"  authorities="EDITOR" /> -->
+ <!--<user name="M043849" password="WestpaC1"  authorities="EDITOR" /> -->
+ 
+            </user-service>
+        </authentication-provider>
+    </authentication-manager>
+
+</beans:beans>
